@@ -1,0 +1,108 @@
+﻿<Window x:Class="ProjectCreator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ProjectCreator"
+        mc:Ignorable="d"
+        Title="项目模板创建器" 
+        Width="600"
+        Height="Auto" 
+        SizeToContent="Height" 
+        WindowStartupLocation="CenterScreen"
+        MinHeight="400"
+        MaxHeight="800"
+        Loaded="Window_Loaded">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" MaxHeight="250">
+            <ItemsControl Name="DynamicInputsControl" Margin="0,0,0,5">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" MinWidth="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Column="0" Content="{Binding Label}" Target="{Binding ElementName=InputTextBox}" VerticalAlignment="Center" ToolTip="{Binding Key}"/>
+                            <TextBox Grid.Column="1" Name="InputTextBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Margin="5,0" Padding="3" VerticalAlignment="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Button Grid.Row="1" Name="BtnCreate" Content="创建项目" Margin="5,15" Padding="10" FontWeight="Bold" IsDefault="True" Click="BtnCreate_Click"/>
+
+        <Expander Grid.Row="2" Header="⚙️ 高级配置" Margin="0,0,0,5">
+            <Grid Margin="10,5,10,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Row="0" Grid.Column="0" Content="模板路径(_T):" Target="{Binding ElementName=TxtTemplatePath}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Name="TxtTemplatePath" Margin="5" Padding="3" VerticalAlignment="Center" IsReadOnly="False" />
+                    <Button Grid.Row="0" Grid.Column="2" Name="BtnBrowseTemplate" Content="浏览..." Margin="5,5,0,5" Padding="10,3" Click="BtnBrowseTemplate_Click"/>
+
+                    <Label Grid.Row="1" Grid.Column="0" Content="目标路径(_D):" Target="{Binding ElementName=TxtTargetPath}" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Name="TxtTargetPath" Margin="5" Padding="3" VerticalAlignment="Center" IsReadOnly="False" />
+                    <Button Grid.Row="1" Grid.Column="2" Name="BtnBrowseTarget" Content="浏览..." Margin="5,5,0,5" Padding="10,3" Click="BtnBrowseTarget_Click"/>
+                </Grid>
+
+                <CheckBox Grid.Row="1" Name="ChkReplaceReadme" Margin="5,15,5,0"
+                          Content="替换模板中 README.md 文件内的占位符"
+                          IsChecked="True" VerticalAlignment="Center"/>
+
+                <GroupBox Grid.Row="2" Header="自定义占位符" Margin="0,15,0,5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="5,0,5,5" Foreground="Gray" FontSize="11">
+                            在此处配置主界面的输入项。Key 只能包含字母、数字和下划线 (例如: "project_name")。
+                            Key 将自动转换为 "%project_name%" 占位符。
+                        </TextBlock>
+                        <DataGrid Grid.Row="1" Name="ConfigDataGrid" 
+                                  AutoGenerateColumns="False" 
+                                  CanUserAddRows="True" 
+                                  CanUserDeleteRows="True"
+                                  MaxHeight="200"
+                                  ItemsSource="{Binding UserPlaceholders}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Key (例如: project_name)" Binding="{Binding Key}" Width="*"/>
+                                <DataGridTextColumn Header="UI 标签 (例如: 项目名称)" Binding="{Binding Label}" Width="2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </GroupBox>
+
+                <Button Grid.Row="3" Grid.Column="0" Name="BtnSaveConfig" Content="保存配置" Margin="5,10,0,0" Padding="10,3" Click="BtnSaveConfig_Click" HorizontalAlignment="Right"/>
+            </Grid>
+        </Expander>
+
+        <TextBlock Grid.Row="3" Name="TxtStatus" Margin="5" VerticalAlignment="Bottom" TextWrapping="Wrap" Text="准备就绪。"/>
+
+    </Grid>
+</Window>
