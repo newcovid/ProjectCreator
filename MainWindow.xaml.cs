@@ -6,12 +6,15 @@ using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Windows.Controls;
+// using System.Windows.Controls; // Wpf.Ui.Controls.TextBox 将被使用
 using System.Windows.Media;
+using Microsoft.Win32; // [新] 引入WPF的现代对话框
+using Wpf.Ui.Controls; // [新] 引入WPF-UI的控件
 
 namespace ProjectCreator
 {
-    public partial class MainWindow : Window
+    // [已修复] 继承 Wpf.Ui.Controls.FluentWindow
+    public partial class MainWindow : Wpf.Ui.Controls.FluentWindow
     {
         private AppSettings _settings = new AppSettings();
         private const string ConfigFileName = "config.json";
@@ -139,7 +142,8 @@ namespace ProjectCreator
                     var container = DynamicInputsControl.ItemContainerGenerator.ContainerFromIndex(0) as FrameworkElement;
                     if (container != null)
                     {
-                        var textBox = FindVisualChild<System.Windows.Controls.TextBox>(container);
+                        // [已修改] 查找 Wpf.Ui.Controls.TextBox
+                        var textBox = FindVisualChild<Wpf.Ui.Controls.TextBox>(container);
                         textBox?.Focus();
                     }
                 }
@@ -182,31 +186,43 @@ namespace ProjectCreator
             }
         }
 
+        // [已修改] 使用现代WPF对话框 (OpenFileDialog 技巧)
+        // 这将自动支持深色/浅色模式，并修复换行问题
         private string? ShowFolderBrowser(string description, string initialPath)
         {
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            // [已修复] 明确指定 Microsoft.Win32.OpenFileDialog 来解决歧义
+            var dialog = new Microsoft.Win32.OpenFileDialog
             {
-                dialog.Description = description;
-                dialog.ShowNewFolderButton = true;
+                // 将描述放在标题栏，而不是对话框内
+                Title = description,
+                ValidateNames = false,
+                CheckFileExists = false,
+                CheckPathExists = true,
+                // 设置一个虚拟的文件名，让对话框以为在"打开文件"
+                // 实际我们只关心路径
+                FileName = "选择文件夹"
+            };
 
-                string resolvedInitialPath = PlaceholderService.Resolve(initialPath, PlaceholderService.GetPresetVariables());
+            string resolvedInitialPath = PlaceholderService.Resolve(initialPath, PlaceholderService.GetPresetVariables());
 
-                if (Directory.Exists(resolvedInitialPath))
-                {
-                    dialog.SelectedPath = resolvedInitialPath;
-                }
-                else if (Directory.Exists(initialPath))
-                {
-                    dialog.SelectedPath = initialPath;
-                }
-
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    return dialog.SelectedPath;
-                }
+            if (Directory.Exists(resolvedInitialPath))
+            {
+                dialog.InitialDirectory = resolvedInitialPath;
             }
+            else if (Directory.Exists(initialPath))
+            {
+                dialog.InitialDirectory = initialPath;
+            }
+
+            if (dialog.ShowDialog() == true)
+            {
+                // 获取所选"文件"的目录路径
+                return Path.GetDirectoryName(dialog.FileName);
+            }
+
             return null;
         }
+
 
         // --- 配置持久化 (JSON) ---
 
@@ -335,6 +351,7 @@ namespace ProjectCreator
             TxtStatus.Foreground = System.Windows.Media.Brushes.Gray;
         }
 
+        // [已修复] 移除了之前错误添加的 `_csharp` 文本
         private void ClearStatus()
         {
             TxtStatus.Text = "";
@@ -363,3 +380,4 @@ namespace ProjectCreator
         public string Value { get; set; } = "";
     }
 }
+
